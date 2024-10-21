@@ -1,8 +1,7 @@
 import os
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 import yaml
 
@@ -22,7 +21,6 @@ class ResourceType(Enum):
     GENIE_SPACE = "genie_space"
 
 
-@dataclass
 class Resource(ABC):
     """
     Base class for defining the resources needed to serve a model.
@@ -32,8 +30,9 @@ class Resource(ABC):
         target_uri (str): The target URI where these resources are hosted.
     """
 
-    type: ResourceType
-    target_uri: str
+    def __init__(self, type: ResourceType, target_uri: str):
+        self.type = type
+        self.target_uri = target_uri
 
     @abstractmethod
     def to_dict(self):
@@ -50,7 +49,6 @@ class Resource(ABC):
         """
 
 
-@dataclass
 class DatabricksResource(Resource, ABC):
     """
     Base class to define all the Databricks resources to serve a model.
@@ -58,10 +56,10 @@ class DatabricksResource(Resource, ABC):
     Example usage: https://docs.databricks.com/en/generative-ai/log-agent.html#specify-resources-for-pyfunc-or-langchain-agent
     """
 
-    target_uri: str = "databricks"
+    def __init__(self, target_uri="databricks"):
+        super().__init__(type=None, target_uri=target_uri)
 
 
-@dataclass
 class DatabricksUCConnection(DatabricksResource):
     """
     Define a Databricks UC Connection used to serve a model.
@@ -71,18 +69,19 @@ class DatabricksUCConnection(DatabricksResource):
         used to create the tool which was used to build the model.
     """
 
-    type: ResourceType = ResourceType.UC_CONNECTION
-    connection_name: str = None
+    def __init__(self, connection_name: str):
+        super().__init__()
+        self.connection_name = connection_name
+        self.type = ResourceType.UC_CONNECTION
 
     def to_dict(self):
-        return {self.type.value: [{"name": self.connection_name}]} if self.connection_name else {}
+        return {self.type.value: [{"name": self.connection_name}]}
 
     @classmethod
     def from_dict(cls, data: Dict[str, str]):
         return cls(connection_name=data["name"])
 
 
-@dataclass
 class DatabricksServingEndpoint(DatabricksResource):
     """
     Define Databricks LLM endpoint resource to serve a model.
@@ -91,18 +90,19 @@ class DatabricksServingEndpoint(DatabricksResource):
         endpoint_name (str): The name of all the databricks endpoints used by the model.
     """
 
-    type: ResourceType = ResourceType.SERVING_ENDPOINT
-    endpoint_name: str = None
+    def __init__(self, endpoint_name: str):
+        super().__init__()
+        self.endpoint_name = endpoint_name
+        self.type = ResourceType.SERVING_ENDPOINT
 
     def to_dict(self):
-        return {self.type.value: [{"name": self.endpoint_name}]} if self.endpoint_name else {}
+        return {self.type.value: [{"name": self.endpoint_name}]}
 
     @classmethod
     def from_dict(cls, data: Dict[str, str]):
         return cls(endpoint_name=data["name"])
 
 
-@dataclass
 class DatabricksVectorSearchIndex(DatabricksResource):
     """
     Define Databricks vector search index name resource to serve a model.
@@ -112,18 +112,19 @@ class DatabricksVectorSearchIndex(DatabricksResource):
         used by the model.
     """
 
-    type: ResourceType = ResourceType.VECTOR_SEARCH_INDEX
-    index_name: str = None
+    def __init__(self, index_name: str):
+        super().__init__()
+        self.index_name = index_name
+        self.type = ResourceType.VECTOR_SEARCH_INDEX
 
     def to_dict(self):
-        return {self.type.value: [{"name": self.index_name}]} if self.index_name else {}
+        return {self.type.value: [{"name": self.index_name}]}
 
     @classmethod
     def from_dict(cls, data: Dict[str, str]):
         return cls(index_name=data["name"])
 
 
-@dataclass
 class DatabricksSQLWarehouse(DatabricksResource):
     """
     Define Databricks sql warehouse resource to serve a model.
@@ -132,18 +133,19 @@ class DatabricksSQLWarehouse(DatabricksResource):
         warehouse_id (str): The id of the sql warehouse used by the model
     """
 
-    type: ResourceType = ResourceType.SQL_WAREHOUSE
-    warehouse_id: str = None
+    def __init__(self, warehouse_id: str):
+        super().__init__()
+        self.warehouse_id = warehouse_id
+        self.type = ResourceType.SQL_WAREHOUSE
 
     def to_dict(self):
-        return {self.type.value: [{"name": self.warehouse_id}]} if self.warehouse_id else {}
+        return {self.type.value: [{"name": self.warehouse_id}]}
 
     @classmethod
     def from_dict(cls, data: Dict[str, str]):
         return cls(warehouse_id=data["name"])
 
 
-@dataclass
 class DatabricksFunction(DatabricksResource):
     """
     Define Databricks UC Function to serve a model.
@@ -152,18 +154,19 @@ class DatabricksFunction(DatabricksResource):
         function_name (str): The name of the function used by the model
     """
 
-    type: ResourceType = ResourceType.FUNCTION
-    function_name: str = None
+    def __init__(self, function_name: str):
+        super().__init__()
+        self.function_name = function_name
+        self.type = ResourceType.FUNCTION
 
     def to_dict(self):
-        return {self.type.value: [{"name": self.function_name}]} if self.function_name else {}
+        return {self.type.value: [{"name": self.function_name}]}
 
     @classmethod
     def from_dict(cls, data: Dict[str, str]):
         return cls(function_name=data["name"])
 
 
-@dataclass
 class DatabricksGenieSpace(DatabricksResource):
     """
     Define a Databricks Genie Space to serve a model.
@@ -172,11 +175,13 @@ class DatabricksGenieSpace(DatabricksResource):
         genie_space_id (str): The genie space id
     """
 
-    type: ResourceType = ResourceType.GENIE_SPACE
-    genie_space_id: Optional[str] = None
+    def __init__(self, genie_space_id: str):
+        super().__init__()
+        self.genie_space_id = genie_space_id
+        self.type = ResourceType.GENIE_SPACE
 
     def to_dict(self):
-        return {self.type.value: [{"name": self.genie_space_id}]} if self.genie_space_id else {}
+        return {self.type.value: [{"name": self.genie_space_id}]}
 
     @classmethod
     def from_dict(cls, data: Dict[str, str]):
